@@ -1,19 +1,7 @@
-// Copyright (c) 2012-2014, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2011-2016 The Cryptonote developers
+// Copyright (c) 2014-2017 XDN-project developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 static void
 #if defined(AESNI)
@@ -24,8 +12,8 @@ cn_slow_hash_noaesni
 (void *restrict context, const void *restrict data, size_t length, void *restrict hash)
 {
 #define ctx ((struct cn_ctx *) context)
-  uint8_t ExpandedKey[256];
-  size_t i, j;
+  ALIGNED_DECL(uint8_t ExpandedKey[256], 16);
+  size_t i;
   __m128i *longoutput, *expkey, *xmminput, b_x;
   ALIGNED_DECL(uint64_t a[2], 16);
   hash_process(&ctx->state.hs, (const uint8_t*) data, length);
@@ -50,7 +38,7 @@ cn_slow_hash_noaesni
   for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
   {
 #if defined(AESNI)
-    for(j = 0; j < 10; j++)
+    for(size_t j = 0; j < 10; j++)
     {
       xmminput[0] = _mm_aesenc_si128(xmminput[0], expkey[j]);
       xmminput[1] = _mm_aesenc_si128(xmminput[1], expkey[j]);
@@ -167,7 +155,7 @@ cn_slow_hash_noaesni
     xmminput[7] = _mm_xor_si128(longoutput[(i >> 4) + 7], xmminput[7]);
 
 #if defined(AESNI)
-    for(j = 0; j < 10; j++)
+    for(size_t j = 0; j < 10; j++)
     {
       xmminput[0] = _mm_aesenc_si128(xmminput[0], expkey[j]);
       xmminput[1] = _mm_aesenc_si128(xmminput[1], expkey[j]);
